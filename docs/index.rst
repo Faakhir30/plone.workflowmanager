@@ -1,0 +1,5 @@
+=====================
+plone.workflowmanager
+=====================
+
+User documentation
