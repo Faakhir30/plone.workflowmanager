@@ -9,15 +9,15 @@ from zope.interface import Interface
 
 @implementer(IExpandableElement)
 @adapter(Interface, Interface)
-class WorkflowManagerService(object):
+class Manager(object):
     def __init__(self, context, request):
         self.context = context.aq_explicit
         self.request = request
 
     def __call__(self, expand=False):
         result = {
-            "workflow_manager_service": {
-                "@id": "{}/@workflow_manager_service".format(
+            "manager": {
+                "@id": "{}/@manager".format(
                     self.context.absolute_url(),
                 ),
             },
@@ -51,11 +51,11 @@ class WorkflowManagerService(object):
                     "@id": brain.getURL(),
                 }
             )
-        result["workflow_manager_service"]["items"] = items
+        result["manager"]["items"] = items
         return result
 
 
-class WorkflowManagerServiceGet(Service):
+class ManagerGet(Service):
     def reply(self):
-        service_factory = WorkflowManagerService(self.context, self.request)
-        return service_factory(expand=True)["workflow_manager_service"]
+        service_factory = Manager(self.context, self.request)
+        return service_factory(expand=True)["manager"]

@@ -2,13 +2,13 @@
   xmlns="http://namespaces.zope.org/zope"
   xmlns:plone="http://namespaces.plone.org/plone">
 
-  <adapter factory=".get.WorkflowManagerService" name="workflow_manager_service"/>
+  <adapter factory=".get.Manager" name="manager"/>
 
   <plone:service
     method="GET"
     for="zope.interface.Interface"
-    factory=".get.WorkflowManagerServiceGet"
-    name="@workflow_manager_service"
+    factory=".get.ManagerGet"
+    name="@manager"
     permission="zope2.View"
     />
 
