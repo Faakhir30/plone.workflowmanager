@@ -1,15 +1,62 @@
 <configure
-  xmlns="http://namespaces.zope.org/zope"
-  xmlns:plone="http://namespaces.plone.org/plone">
-
-  <adapter factory=".get.Workflow" name="workflow"/>
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
+    >
 
   <plone:service
-    method="GET"
-    for="zope.interface.Interface"
-    factory=".get.WorkflowGet"
-    name="@workflow"
-    permission="zope2.View"
-    />
+      method="POST"
+      name="@workflow-add"
+      for="plone.restapi.bbb.IPloneSiteRoot"
+      factory=".workflow.AddWorkflow"
+      permission="zope2.View"
+      />
 
+  <plone:service
+      method="POST"
+      name="@workflow-security-update"
+      for="plone.restapi.bbb.IPloneSiteRoot"
+      factory=".workflow.UpdateSecurityService"
+      permission="zope2.View"
+      />
+
+  <plone:service
+      method="POST"
+      name="@workflow-assign"
+      for="plone.restapi.bbb.IPloneSiteRoot"
+      factory=".workflow.AssignWorkflowService"
+      permission="zope2.View"
+      />
+
+  <plone:service
+      method="DELETE"
+      name="@workflow-delete"
+      for="plone.restapi.bbb.IPloneSiteRoot"
+      factory=".workflow.DeleteWorkflowService"
+      permission="zope2.View"
+      />
+
+  <plone:service
+      method="GET"
+      name="@workflow-graph"
+      for="plone.restapi.bbb.IPloneSiteRoot"
+      factory=".workflow.GraphService"
+      permission="zope2.View"
+      />
+
+  <plone:service
+      method="GET"
+      name="@workflow-validate"
+      for="plone.restapi.bbb.IPloneSiteRoot"
+      factory=".workflow.SanityCheckService"
+      permission="zope2.View"
+      />
+
+  <plone:service
+      method="GET"
+      name="@workflows"
+      for="plone.restapi.bbb.IPloneSiteRoot"
+      factory=".workflow.GetWorkflowsService"
+      permission="zope2.View"
+      />
 </configure>
