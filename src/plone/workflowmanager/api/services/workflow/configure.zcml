@@ -38,14 +38,6 @@
 
   <plone:service
       method="GET"
-      name="@workflow-graph"
-      for="plone.restapi.bbb.IPloneSiteRoot"
-      factory=".workflow.GraphService"
-      permission="zope2.View"
-      />
-
-  <plone:service
-      method="GET"
       name="@workflow-validate"
       for="plone.restapi.bbb.IPloneSiteRoot"
       factory=".workflow.SanityCheckService"

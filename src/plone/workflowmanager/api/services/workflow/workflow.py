@@ -1,45 +1,17 @@
 # -*- coding: utf-8 -*-
-from plone import api
 from plone.restapi.interfaces import IExpandableElement
 from Products.CMFCore.interfaces._content import IWorkflowAware
 from plone.restapi.services import Service
 from zope.component import adapter
 from zope.interface import implementer
 from zope.interface import Interface
-from Products.CMFCore.utils import getToolByName
-from random import randint
 from urllib.parse import urlencode
 from plone.restapi.deserializer import json_body
 
 from zope.publisher.interfaces import IPublishTraverse
-from DateTime import DateTime
-from plone.workflowmanager.graphviz import getGraph
-from plone.workflowmanager import validators
 from plone.workflowmanager import _
-
+from plone.workflowmanager.api.services.workflow.base import Base
 from urllib.parse import urlencode
-import json
-
-from Acquisition import aq_get
-from AccessControl import Unauthorized
-
-from zope.component import getUtility, getMultiAdapter
-from zope.schema.interfaces import IVocabularyFactory
-import zope.i18n
-
-from Products.CMFCore.utils import getToolByName
-from plone.memoize.view import memoize
-
-# from plone.workflowmanager.browser.layout import GraphLayout
-from plone.workflowmanager.permissions import (
-    managed_permissions,
-    allowed_guard_permissions,
-)
-from plone.workflowmanager.graphviz import HAS_GRAPHVIZ
-from plone.workflowmanager.actionmanager import ActionManager
-from plone.workflowmanager import _
-
-from base64 import b64encode
 
 plone_shipped_workflows = [
     "folder_workflow",
@@ -50,171 +22,6 @@ plone_shipped_workflows = [
     "simple_publication_workflow",
     "comment_review_workflow",
 ]
-
-
-class Base:
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-
-    debug = False
-    errors = {}
-    next_id = None  # the id of the next workflow to be viewed
-    label = _("Workflow Manager")
-    description = _("Manage your custom workflows TTW.")
-
-    @property
-    @memoize
-    def managed_permissions(self):
-        return managed_permissions(self.selected_workflow.getId())
-
-    @property
-    @memoize
-    def actions(self):
-        return ActionManager()
-
-    @property
-    @memoize
-    def allowed_guard_permissions(self):
-        return allowed_guard_permissions(self.selected_workflow.getId())
-
-    @property
-    @memoize
-    def portal(self):
-        utool = getToolByName(self.context, "portal_url")
-        return utool.getPortalObject()
-
-    @property
-    @memoize
-    def portal_workflow(self):
-        return getToolByName(self.context, "portal_workflow")
-
-    @property
-    @memoize
-    def available_workflows(self):
-        return [w for w in self.workflows if w.id not in plone_shipped_workflows]
-
-    @property
-    @memoize
-    def workflows(self):
-        pw = self.portal_workflow
-        ids = pw.portal_workflow.listWorkflows()
-        return [pw[id] for id in sorted(ids)]
-
-    @property
-    @memoize
-    def selected_workflow(self):
-        selected = self.request.get("selected-workflow")
-        if isinstance(selected, list) and selected:
-            selected = selected[0]
-        return (
-            self.portal_workflow.get(selected)
-            if selected in self.portal_workflow.objectIds()
-            else None
-        )
-
-    @property
-    @memoize
-    def selected_state(self):
-        state = self.request.get("selected-state")
-        if isinstance(state, list) and state:
-            state = state[0]
-        return (
-            self.selected_workflow.states.get(state) if self.selected_workflow else None
-        )
-
-    @property
-    @memoize
-    def selected_transition(self):
-        transition = self.request.get("selected-transition")
-        if isinstance(transition, list) and transition:
-            transition = transition[0]
-        return (
-            self.selected_workflow.transitions.get(transition)
-            if self.selected_workflow
-            else None
-        )
-
-    @property
-    @memoize
-    def available_states(self):
-        return (
-            sorted(
-                self.selected_workflow.states.objectValues(),
-                key=lambda x: x.title.lower(),
-            )
-            if self.selected_workflow
-            else []
-        )
-
-    @property
-    @memoize
-    def available_transitions(self):
-        return (
-            sorted(
-                self.selected_workflow.transitions.objectValues(),
-                key=lambda x: x.title.lower(),
-            )
-            if self.selected_workflow
-            else []
-        )
-
-    def authorize(self):
-        authenticator = getMultiAdapter(
-            (self.context, self.request), name="authenticator"
-        )
-        if not authenticator.verify():
-            raise Unauthorized
-
-    def get_transition_paths(self, state=None):
-        states = [state] if state else self.available_states
-        paths = {}
-        for state in states:
-            stateId = state.id
-            paths[stateId] = {
-                trans.new_state_id: {trans.id: trans.title}
-                for trans in map(self.get_transition, state.transitions)
-                if trans and trans.new_state_id
-            }
-        return json.dumps(paths)
-
-    # def get_graphLayout(self, workflow):
-    #     gl = GraphLayout(self.context, self.request, workflow.id)
-    #     return gl.getLayout()
-
-    @property
-    @memoize
-    def next_url(self):
-        return self.get_url()
-
-    def get_url(
-        self, relative=None, workflow=None, transition=None, state=None, **kwargs
-    ):
-        url = (
-            f"{self.context.absolute_url()}/@@workflowmanager"
-            if not relative
-            else f"{self.context.absolute_url()}/{relative.lstrip('/')}"
-        )
-        params = {
-            "selected-workflow": (
-                workflow.id
-                if workflow
-                else (
-                    self.next_id
-                    or (self.selected_workflow.id if self.selected_workflow else None)
-                )
-            ),
-            "selected-transition": transition.id if transition else None,
-            "selected-state": state.id if state else None,
-            **kwargs,
-        }
-        params = {k: v for k, v in params.items() if v is not None}
-        return f"{url}?{urlencode(params)}" if params else url
-
-    @property
-    @memoize
-    def context_state(self):
-        return getMultiAdapter((self.context, self.request), name="plone_portal_state")
 
 
 @implementer(IExpandableElement)
@@ -395,25 +202,6 @@ class SanityCheck(Service):
 
 @implementer(IExpandableElement)
 @adapter(IWorkflowAware, Interface)
-class Graph(Service):
-    def __init__(self, context, request):
-        self.request = request
-        self.context = context
-        self.base = Base(context, request)
-
-    def reply(self):
-        # generate a random number to prevent browser from caching this...
-        self.random_number = str(randint(0, 999999999))
-        resp = self.request.response
-        resp.setHeader("Content-Type", "image/gif")
-        resp.setHeader("Last-Modified", DateTime().rfc822())
-        graph = getGraph(self.base.selected_workflow)
-        resp.setHeader("Content-Length", str(len(graph)))
-        return graph
-
-
-@implementer(IExpandableElement)
-@adapter(IWorkflowAware, Interface)
 class UpdateSecurityService(Service):
     def __init__(self, context, request):
         self.request = request
@@ -482,7 +270,6 @@ class AssignWorkflowService(Service):
         return None
 
 
-@implementer(IExpandableElement)
 @adapter(IWorkflowAware, Interface)
 class DeleteWorkflowService(Service):
     def __init__(self, context, request):
@@ -512,47 +299,6 @@ class DeleteWorkflowService(Service):
         return None
 
 
-@implementer(IExpandableElement)
-@adapter(IWorkflowAware, Interface)
-class GraphService(Service):
-    def __init__(self, context, request):
-        self.request = request
-        self.context = context
-        self.base = Base(context, request)
-
-    def reply(self):
-        workflow = self.get_selected_workflow()
-        if not workflow:
-            return {"error": "No workflow selected"}
-
-        try:
-            graph_data = getGraph(workflow)
-            if not graph_data:
-                return {"error": "Could not generate graph"}
-            print(graph_data, "graph_data>>>")
-            # Convert graph binary data to base64 for JSON response
-            encoded_graph = b64encode(graph_data).decode("utf-8")
-
-            return {
-                "status": "success",
-                "workflow": workflow.id,
-                "graph": {
-                    "data": encoded_graph,
-                    "content-type": "image/gif",
-                    "encoding": "base64",
-                },
-            }
-        except TypeError:
-            return {"error": "Error generating workflow graph"}
-
-    def get_selected_workflow(self):
-        workflow_id = self.request.form.get("selected-workflow")
-        if workflow_id:
-            return self.base.portal_workflow.get(workflow_id)
-        return None
-
-
-@implementer(IExpandableElement)
 @adapter(IWorkflowAware, Interface)
 class SanityCheckService(Service):
     def __init__(self, context, request):
@@ -653,9 +399,9 @@ class GetWorkflowsService(Service):
         for workflow_id in portal_workflow.listWorkflows():
             workflow = portal_workflow[workflow_id]
 
-            # Skip Plone shipped workflows if needed
-            if workflow_id in plone_shipped_workflows:
-                continue
+            # # Skip Plone shipped workflows if needed
+            # if workflow_id in plone_shipped_workflows:
+            #     continue
 
             workflow_info = {
                 "id": workflow_id,

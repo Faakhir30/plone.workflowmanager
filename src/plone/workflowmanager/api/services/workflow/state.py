@@ -1,63 +1,55 @@
-# from persistent.mapping import PersistentMapping
-# from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from persistent.mapping import PersistentMapping
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from plone.restapi.deserializer import json_body
+from plone.restapi.services import Service
+from Products.CMFCore.interfaces._content import IWorkflowAware
+from zope.component import adapter
+from zope.interface import Interface
 
-# from plone.workflowmanager.utils import clone_state
-# from plone.app.workflow.remap import remap_workflow
+from plone.workflowmanager.utils import clone_state
 
-# from plone.workflowmanager.browser import validators
-# from plone.workflowmanager.permissions import managed_permissions
-# from plone.workflowmanager.browser.controlpanel import Base
-# from plone.workflowmanager import _
-# import json
+from plone.workflowmanager.browser import validators
+from plone.workflowmanager.permissions import managed_permissions
+from plone.workflowmanager.api.services.workflow.base import Base
+from plone.workflowmanager import _
 
 
-# class AddState(Base):
-#     template = ViewPageTemplateFile("templates/add-new-state.pt")
-#     new_state_template = ViewPageTemplateFile("templates/state.pt")
+@adapter(IWorkflowAware, Interface)
+class AddState(Service):
+    def __init__(self, context, request):
+        self.request = request
+        self.payload = json_body(request)
+        self.context = context
+        self.base = Base(context, request)
 
-#     def __call__(self):
-#         self.errors = {}
+    def reply(self):
+        self.errors = {}
 
-#         if not self.request.get("form.actions.add", False):
-#             return self.handle_response(tmpl=self.template)
-#         else:
-#             self.authorize()
-#             state = validators.not_empty(self, "state-name")
-#             state_id = validators.id(self, "state-name", self.selected_workflow.states)
+        self.base.authorize()
+        state = validators.not_empty(self, "state-name")
+        state_id = validators.id(self, "state-name", self.selected_workflow.states)
 
-#             if not self.errors:
-#                 workflow = self.selected_workflow
-#                 workflow.states.addState(state_id)
-#                 new_state = workflow.states[state_id]
-#                 clone_of_id = self.request.get("clone-from-state")
-#                 if clone_of_id:
-#                     clone_state(new_state, workflow.states[clone_of_id])
+        if self.errors:
+            return {"status": "error", "message": self.errors}
+        wf = self.base.selected_workflow
+        wf.states.addState(state_id)
+        new_state = wf.states[state_id]
+        clone_of_id = self.payload.get("clone-from-state")
+        if clone_of_id:
+            clone_state(new_state, wf.states[clone_of_id])
 
-#                 new_state.title = state
-#                 referenced_transition = self.request.get("referenced-transition", None)
-#                 if referenced_transition:
-#                     new_state.transitions += (referenced_transition,)
+        new_state.title = state
+        referenced_transition = self.payload.get("referenced-transition", None)
+        if referenced_transition:
+            new_state.transitions += (referenced_transition,)
 
-#                 msg = _(
-#                     "msg_state_created",
-#                     default=f'"{new_state.id}" state successfully created.',
-#                     mapping={"state_id": new_state.id},
-#                 )
+        msg = _(
+            "msg_state_created",
+            default=f'"{new_state.id}" state successfully created.',
+            mapping={"state_id": new_state.id},
+        )
 
-#                 new_elements = self.new_state_template(states=[new_state])
-#                 updates = {
-#                     "element": new_elements,
-#                     "type": "state",
-#                     "action": "add",
-#                     "objectId": new_state.id,
-#                     "transitions": new_state.transitions,
-#                 }
-
-#                 return self.handle_response(
-#                     message=msg, graph_updates=updates, state=new_state
-#                 )
-#             else:
-#                 return self.handle_response(tmpl=self.template, justdoerrors=True)
+        return {"status": "success", "message": msg, "state": new_state}
 
 
 # class DeleteState(Base):
