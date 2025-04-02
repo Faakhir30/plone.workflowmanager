@@ -1,68 +1,46 @@
-.. This README is meant for consumption by humans and PyPI. PyPI can render rst files so please do not use Sphinx features.
-   If you want to learn more about writing documentation, please check out: http://docs.plone.org/about/documentation_styleguide.html
-   This text does not appear on PyPI or github. It is a comment.
-
-.. image:: https://github.com/collective/plone.workflowmanager/actions/workflows/plone-package.yml/badge.svg
-    :target: https://github.com/collective/plone.workflowmanager/actions/workflows/plone-package.yml
-
-.. image:: https://coveralls.io/repos/github/collective/plone.workflowmanager/badge.svg?branch=main
-    :target: https://coveralls.io/github/collective/plone.workflowmanager?branch=main
-    :alt: Coveralls
-
-.. image:: https://codecov.io/gh/collective/plone.workflowmanager/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/collective/plone.workflowmanager
-
-.. image:: https://img.shields.io/pypi/v/plone.workflowmanager.svg
-    :target: https://pypi.python.org/pypi/plone.workflowmanager/
-    :alt: Latest Version
-
-.. image:: https://img.shields.io/pypi/status/plone.workflowmanager.svg
-    :target: https://pypi.python.org/pypi/plone.workflowmanager
-    :alt: Egg Status
-
-.. image:: https://img.shields.io/pypi/pyversions/plone.workflowmanager.svg?style=plastic   :alt: Supported - Python Versions
-
-.. image:: https://img.shields.io/pypi/l/plone.workflowmanager.svg
-    :target: https://pypi.python.org/pypi/plone.workflowmanager/
-    :alt: License
-
-
 =====================
 plone.workflowmanager
 =====================
 
-Workflow manager
+A PoC Backend add-on of Workflow Manager for Volto. For **Video Demo** and Frontend add-on see https://github.com/Faakhir30/volto-workflowmanager .
 
 Features
 --------
+This addon enhances plone backend by following features:
 
-- Can be bullet points
+- Migrated majority codebase of https://github.com/plone/plone.app.workflowmanager to python3 from python2.7 and plone6 from plone5.1.
+- Rewrote codebase for restapi's instead of browser views with zcml interfaces.
+- Added the following services:
+   - AddWorkflowService: initializes a workflow, clones from a workflow
+   - GetWorkflowsService: Gets all workflows including plone shipped ones
+   - AddState: adds state to existing workflow
+   - UpdateSecurityService: does recursiveUpdateRoleMappings for workflow
+   - AssignWorkflowService: Assigns a workflow to some content-type
+   - DeleteWorkflowService: Deletes a workflow
+   - SanityCheckService: Checks for possible correctness of a workflow
 
+Future Path
+-----------
 
-Examples
---------
+**As this is mere PoC, I haven't followed best plone.restapi practices**, so stopping this here, however, the next steps in this PoC would have been the following:
 
-This add-on can be seen in action at the following sites:
-- Is there a page on the internet where everybody can see the features?
-
-
-Documentation
--------------
-
-Full documentation for end users can be found in the "docs" folder, and is also available online at http://docs.plone.org/foo/bar
-
-
-Translations
-------------
-
-This product has been translated into
-
-- Klingon (thanks, K'Plai)
-
+- Add/enahce new services:
+ - EditState, DeleteState, EditTransition, DeleteTransition, CreateTransition, AssignWorkflow...
+- Add Tests
+- Add http examples for endpoints
+- Add docs
+- Configure Release process
 
 Installation
 ------------
+### For quick testing with [plonecli](https://github.com/plone/plonecli):
+```
+git clone https://github.com/Faakhir30/plone.workflowmanager
+cd plone.workflowmanager
+plonecli build serve
+```
 
+### For existing plone website (I've not tried, but hopefully would work):
 Install plone.workflowmanager by adding it to your buildout::
 
     [buildout]
@@ -71,41 +49,8 @@ Install plone.workflowmanager by adding it to your buildout::
 
     eggs =
         plone.workflowmanager
+    sources = 
+        plone.workflowmanager = https://github.com/Faakhir30/plone.workflowmanager
 
 
 and then running ``bin/buildout``
-
-
-Authors
--------
-
-Provided by awesome people ;)
-
-
-Contributors
-------------
-
-Put your name here, you deserve it!
-
-- ?
-
-
-Contribute
-----------
-
-- Issue Tracker: https://github.com/collective/plone.workflowmanager/issues
-- Source Code: https://github.com/collective/plone.workflowmanager
-- Documentation: https://docs.plone.org/foo/bar
-
-
-Support
--------
-
-If you are having issues, please let us know.
-We have a mailing list located at: project@example.com
-
-
-License
--------
-
-The project is licensed under the GPLv2.
