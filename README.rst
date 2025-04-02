@@ -33,14 +33,15 @@ Future Path
 
 Installation
 ------------
-### For quick testing with [plonecli](https://github.com/plone/plonecli):
-```
-git clone https://github.com/Faakhir30/plone.workflowmanager
-cd plone.workflowmanager
-plonecli build serve
-```
+For quick testing with [plonecli](https://github.com/plone/plonecli)::
 
-### For existing plone website (I've not tried, but hopefully would work):
+   ...
+   git clone https://github.com/Faakhir30/plone.workflowmanager
+   cd plone.workflowmanager
+   plonecli build serve
+
+
+For existing plone website (I've not tried, but hopefully would work):
 Install plone.workflowmanager by adding it to your buildout::
 
     [buildout]
